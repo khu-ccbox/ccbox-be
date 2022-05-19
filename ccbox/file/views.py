@@ -65,7 +65,7 @@ class Files_id(APIView):
             self.cursor.execute(strsql)
             result = self.cursor.fetchall()
             s3_f.download_file(file_id, result[0][0])
-        
+            
         return HttpResponse("Download Success", content_type='text/plain')
     
     # Delete File

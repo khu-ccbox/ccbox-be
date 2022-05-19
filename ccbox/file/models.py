@@ -15,7 +15,8 @@ class File(models.Model):
     file_name = models.CharField(max_length=45)
     ispublic = models.IntegerField(db_column='IsPublic')  # Field name made lowercase.
     color = models.IntegerField(db_column='Color')  # Field name made lowercase.
-
+    allowed_users = models.ManyToManyField(User, related_name="allowed_file", null=True)
+    
     class Meta:
         db_table = 'File'
 
@@ -61,7 +62,7 @@ class AuthUser(models.Model):
     is_staff = models.IntegerField()
     is_active = models.IntegerField()
     date_joined = models.DateTimeField()
-
+    #allowed_file = models.ManyToManyField("File", blank=True)
     class Meta:
         managed = False
         db_table = 'auth_user'
