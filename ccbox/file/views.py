@@ -28,14 +28,14 @@ class Files(APIView):
             self.cursor.execute(strsql)
             result = self.cursor.fetchall()
             return Response(result)
-    
-    # Upload File
+
+    # Upload File via Sever
     def post(self, request):
         if request.method == 'POST':
             UploadUser = 5
-            path = request.POST['path']
             Folder = request.POST['Folder']
             file_name = request.POST['file_name']
+            file = request.FILES.__getitem__('files')
             IsPublic = request.POST.get('IsPublic', 0)
             Color = request.POST.get('Color', 0)
 
@@ -50,23 +50,58 @@ class Files(APIView):
             result = self.cursor.fetchall()
 
             # upload to S3
-            s3_f.upload_file(path, file_name, result[0][0])
+            s3_f.upload_file_server(file, file_name, result[0][0])
 
             return HttpResponse("Upload Success", content_type='text/plain')
+    
+    # # Upload File Local
+    # def post(self, request):
+    #     if request.method == 'POST':
+    #         UploadUser = 5
+    #         path = request.POST['path']
+    #         Folder = request.POST['Folder']
+    #         file_name = request.POST['file_name']
+    #         IsPublic = request.POST.get('IsPublic', 0)
+    #         Color = request.POST.get('Color', 0)
+
+    #         # Add to MYSQL DB
+    #         strsql = "INSERT INTO File(UploadUser, Folder, file_name, IsPublic, Color) VALUES({0}, {1}, '{2}', {3}, {4})".format(UploadUser, Folder, file_name, IsPublic, Color)
+    #         self.cursor.execute(strsql)
+    #         result = self.cursor.fetchall()
+
+    #         # Get File ID From MYSQL DB
+    #         strsql = "SELECT ID FROM File WHERE Folder = {0} and file_name = '{1}';".format(Folder, file_name)
+    #         self.cursor.execute(strsql)
+    #         result = self.cursor.fetchall()
+
+    #         # upload to S3
+    #         s3_f.upload_file(path, file_name, result[0][0])
+
+    #         return HttpResponse("Upload Success", content_type='text/plain')
 
 
 class Files_id(APIView): 
     cursor = connection.cursor()
     
-    # Download File
+    # # Download File (Local)
+    # def get(self, request, file_id):
+    #     if request.method == 'GET':
+    #         strsql = "SELECT file_name FROM File WHERE ID = {0};".format(file_id)
+    #         self.cursor.execute(strsql)
+    #         result = self.cursor.fetchall()
+    #         s3_f.download_file_local(file_id, result[0][0])
+        
+    #     return HttpResponse("Download Success", content_type='text/plain')
+
+    # Download File (URL)
     def get(self, request, file_id):
         if request.method == 'GET':
             strsql = "SELECT file_name FROM File WHERE ID = {0};".format(file_id)
             self.cursor.execute(strsql)
             result = self.cursor.fetchall()
-            s3_f.download_file(file_id, result[0][0])
+            download_url = s3_f.download_file_url(file_id, result[0][0])
         
-        return HttpResponse("Download Success", content_type='text/plain')
+        return HttpResponse(download_url, content_type='text/plain')
     
     # Delete File
     def delete(self, request, file_id):

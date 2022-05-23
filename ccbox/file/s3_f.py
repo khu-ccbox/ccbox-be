@@ -1,6 +1,6 @@
 import boto3
 from django.shortcuts import render
-import conf
+from file import conf
 
 s3_client = boto3.client(
     's3',
@@ -29,14 +29,22 @@ BUCKET = 'ccbox-db'
 #             print(bucket + '의 ' + files)
 #     return 0 
 
-# s3_client.upload_file(업로드할 파일(코드기준 상대경로), 업로드 할 버킷, 버킷내에서 파일이 가지는 key)
-def upload_file(path, file_name, key):
+# s3_client.upload_file_local(업로드할 파일(코드기준 상대경로), 업로드 할 버킷, 버킷내에서 파일이 가지는 key)
+def upload_file_local(path, file_name, key):
     return s3_client.upload_file(path+'/'+file_name, BUCKET, str(key))
 
 
-# s3_client.download_file('버켓이름','버킷내에서 파일이 가지는 key',"로컬에 저장할때 파일이름")
-def download_file(key, file_name):
+def upload_file_server(file, file_name, key):
+    return s3_client.upload_fileobj(file, BUCKET, str(key) + '/' + file_name)
+
+
+# s3_client.download_file_local('버켓이름','버킷내에서 파일이 가지는 key',"로컬에 저장할때 파일이름")
+def download_file_local(key, file_name):
     return s3_client.download_file(BUCKET, str(key), str(file_name))
+
+
+def download_file_url(key, file_name):
+    return s3_client.generate_presigned_url('get_object', Params={'Bucket': BUCKET, 'Key': str(key) + '/' + file_name}, ExpiresIn=60)
 
 
 def delete_file(key):
